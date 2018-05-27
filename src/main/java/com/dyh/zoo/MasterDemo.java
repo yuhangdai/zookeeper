@@ -1,4 +1,4 @@
-package dyh.demo;
+package com.dyh.zoo;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -7,15 +7,17 @@ import org.apache.zookeeper.ZooKeeper;
 import java.io.IOException;
 
 /**
- * Created by bang on 2018/4/1.
+ * @author bang
+ * @date 2018/5/27 17:28
  */
-public class Master implements Watcher{
-
+public class MasterDemo implements Watcher{
     private ZooKeeper zooKeeper;
 
+    /**  standalone 23.106.132.161:2181  */
+    /**  quorum 23.106.132.161:2181,23.106.132.161:2182,23.106.132.161:2183  */
     private String connectString;
 
-    public Master(String connectString){
+    public MasterDemo(String connectString){
         this.connectString = connectString;
     }
 
@@ -29,10 +31,9 @@ public class Master implements Watcher{
     }
 
     public static void main(String[] args) throws Exception {
-        Master master = new Master("23.106.132.161:2181,23.106.132.161:2182,23.106.132.161:2183");
+        MasterDemo master = new MasterDemo("23.106.132.161:2181");
         master.startZk();
 
         Thread.sleep(120000);
     }
 }
-
