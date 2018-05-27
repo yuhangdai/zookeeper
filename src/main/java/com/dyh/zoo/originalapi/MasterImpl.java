@@ -11,14 +11,14 @@ import java.util.Random;
  * @author bang
  * @date 2018/5/27 17:57
  */
-public class WatcherImpl implements Watcher{
+public class MasterImpl implements Watcher{
 
     private ZooKeeper zooKeeper;
     private String connectString;
     String serverId = Integer.toHexString(new Random().nextInt());
     static boolean isLeader = false;
 
-    public WatcherImpl(String connectString){
+    public MasterImpl(String connectString){
         this.connectString = connectString;
     }
 
@@ -36,7 +36,7 @@ public class WatcherImpl implements Watcher{
     }
 
     public static void main(String[] args) throws Exception {
-        WatcherImpl watcher = new WatcherImpl("23.106.132.161:2181");
+        MasterImpl watcher = new MasterImpl("23.106.132.161:2181");
         watcher.startZk();
         // 竞争成为主节点
         watcher.runForMaster();
