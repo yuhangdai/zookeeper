@@ -2,6 +2,8 @@ package com.dyh.zoo.originalapi;
 
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Random;
@@ -12,6 +14,8 @@ import java.util.Random;
  * @date 2018/5/27 17:57
  */
 public class MasterImpl implements Watcher{
+
+    private static final Logger logger = LoggerFactory.getLogger(MasterImpl.class);
 
     private ZooKeeper zooKeeper;
     private String connectString;
@@ -38,11 +42,13 @@ public class MasterImpl implements Watcher{
     public static void main(String[] args) throws Exception {
         MasterImpl watcher = new MasterImpl("23.106.132.161:2181");
         watcher.startZk();
+        watcher.bootstrap();
+
         // 竞争成为主节点
         watcher.runForMaster();
         if (isLeader){
             System.out.println("i am the leader");
-            Thread.sleep(60000);
+            Thread.sleep(120000);
         } else {
             System.out.println("Someone else is the leader");
         }
@@ -88,4 +94,38 @@ public class MasterImpl implements Watcher{
             }
         }
     }
+
+    void bootstrap(){
+        createParent("/workers",new byte[0]);
+        createParent("/assign",new byte[0]);
+        createParent("/tasks",new byte[0]);
+        createParent("/status",new byte[0]);
+    }
+
+    /**
+     * 创建znode
+     */
+    void createParent(String path,byte[] data){
+        zooKeeper.create(path,data,ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT,createParentCallBack,data);
+    }
+
+    AsyncCallback.StringCallback createParentCallBack = new AsyncCallback.StringCallback() {
+        @Override
+        public void processResult(int i, String path, Object ctx, String s1) {
+            switch (KeeperException.Code.get(i)){
+                case CONNECTIONLOSS:
+                    createParent(path,(byte[])ctx);
+                    break;
+                case OK:
+                    logger.info("Parent created");
+                    break;
+                case NODEEXISTS:
+                    logger.warn("Parent already registered:"+path);
+                    break;
+                default:
+                    logger.error("Something went wrong:",KeeperException.create(KeeperException.Code.get(i),path));
+            }
+        }
+    };
+
 }
